@@ -110,7 +110,7 @@ commands:
             | while read file; do
               TMP_FILE=/tmp/${file//\//__}.md \
                 && echo "After($file)" > $TMP_FILE \
-                && git show `git rev-parse origin/master`:$file \
+                && git show `git rev-parse HEAD`:$file \
                 |  ruby puml_compressor.rb >> $TMP_FILE \
                 && echo "Before($file)" >> $TMP_FILE \
                 && git ls-tree -r `git rev-parse origin/master` --name-only \
