@@ -101,6 +101,8 @@
 
 - [https://github.com/sunakan/puml-diffman/pull/1](https://github.com/sunakan/puml-diffman/pull/1)
 - [https://github.com/sunakan/puml-diffman/pull/3](https://github.com/sunakan/puml-diffman/pull/3)
+- [https://github.com/sunakan/puml-diffman/pull/5](https://github.com/sunakan/puml-diffman/pull/5)
+  - ちょっと表示に時間がかかるかも
 
 </details>
 
