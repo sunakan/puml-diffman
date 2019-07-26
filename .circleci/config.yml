@@ -63,10 +63,6 @@ commands:
             (sudo curl -o /usr/local/bin/jq -L https://github.com/stedolan/jq/releases/download/jq-"<< parameters.version >>"/jq-linux64 && sudo chmod +x /usr/local/bin/jq)
   update_pullrequested_issues:
     description: "hubコマンドとGithub APIを利用してしてされたpull request中の全てのIssueをアップデート"
-    parameters:
-      github_token:
-        type: string
-        default: ${GITHUB_TOKEN}
     steps:
       - run:
           name: "hubコマンドを利用して現在のブランチからリクエストしているプルリクエストの一覧を抽出"
