@@ -2,7 +2,7 @@
 (*)  --> "branch name filter"
 If "feature/*" then
 --> [Yes] "自動プルリク"
---> "プルリクIssueに対して比較用画像コメントを投稿"
+--> "プルリクIssueに対して\n比較用画像コメントを投稿"
 --> (*)
 else
 --> (*)
