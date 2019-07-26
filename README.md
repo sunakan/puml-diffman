@@ -91,3 +91,11 @@
   - プルリクやコメント追加に必要
 
 </details>
+
+<details>
+<summary>実際のプルリクの様子</summary>
+
+- [https://github.com/sunakan/puml-diffman/pull/1](https://github.com/sunakan/puml-diffman/pull/1)
+- [https://github.com/sunakan/puml-diffman/pull/3](https://github.com/sunakan/puml-diffman/pull/3)
+
+</details>
