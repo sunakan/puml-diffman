@@ -65,6 +65,13 @@
 </details>
 
 <details>
+<summary>CircleCIでの流れ</summary>
+
+![alt](https://www.plantuml.com/plantuml/png/UDfpA2v9B2efpStXqj3IL53GrRLJK4egIinBpb38IynDLKZBp2b9BLBYyanJK4fBJImfBKhLrr9IACb8pUC2AOwEJ2sELL1wqRxgQVVKnytJ7pUlVjoywd7JUYMmj1Aoa6TnSMdguyRLJzVlUzmu_N7ZifYyP-kdlDZJ_7pAYkTJTZzjxd_SjFbnyyB7pK2out7Jf6TTKv-ls0yn2UWyhjISubGunpKl9JEDoo4rBmNaUW3mLbXQ)
+
+</details>
+
+<details>
 <summary>使った小技群</summary>
 
 - プルリクがなければhubコマンドによるCicleCIから自動プルリク

@@ -1,0 +1,10 @@
+@startuml
+(*)  --> "branch name filter"
+If "feature/*" then
+--> [Yes] "自動プルリク"
+--> "プルリクIssueに対して\n比較用画像コメントを投稿"
+--> (*)
+else
+--> (*)
+Endif
+@enduml
