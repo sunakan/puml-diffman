@@ -114,7 +114,7 @@ commands:
                   |  grep --line-buffered -E ^"${file}"$ \
                   && git show `git rev-parse origin/master`:$file \
                   |  ruby puml_compressor.rb >> $TMP_FILE \
-                ) || echo "Before($file)\n\nなし" > $TMP_FILE
+                ) || echo -e "Before($file)\n\nなし" > $TMP_FILE
                 echo "After($file)" >> $TMP_FILE
                 git show `git rev-parse HEAD`:$file \
                   |  ruby puml_compressor.rb >> $TMP_FILE
