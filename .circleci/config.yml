@@ -1,0 +1,170 @@
+---
+
+version: 2.1
+
+executors:
+  ruby:
+    parameters:
+      tag:
+        type: string
+        default: "latest"
+    docker:
+      - image: circleci/ruby:<< parameters.tag >>
+
+commands:
+  upseart_pullrequest:
+    description: "hubコマンドを利用して指定されたブランチへpull request"
+    parameters:
+      from:
+        type: string
+      to:
+        type: string
+        default: "master"
+      template:
+        type: string
+        default: ".github/PULL_REQUEST_TEMPLATE.md"
+    steps:
+      - run:
+          name: "<< parameters.from >>ブランチを<< parameters.to >>ブランチへpull request"
+          command: |
+            hub pr list -h "<< parameters.from >>" -b "<< parameters.to >>" > /tmp/pullreq && \
+            if [ -s /tmp/pullreq ]; then
+              echo "既にpull request済みです"
+              cat /tmp/pullreq
+            else
+              hub pull-request --no-edit -h "<< parameters.from >>" -b "<< parameters.to >>" -F "<< parameters.template >>"
+              echo "pull requestしました"
+            fi
+  install_hub:
+    description: "hubコマンドがなければインストール"
+    parameters:
+      version:
+        type: string
+        default: "2.12.3"
+    steps:
+      - run:
+          name: "hubコマンドがなければインストール"
+          command: |
+            type hub || \
+            (curl -sSLf https://github.com/github/hub/releases/download/v<< parameters.version >>/hub-linux-amd64-<< parameters.version >>.tgz | \
+              tar zxf - --strip-components=1 -C /tmp && \
+              sudo mv /tmp/bin/hub /usr/local/bin/hub)
+  install_jq:
+    description: "jqコマンドがなければインストール"
+    parameters:
+      version:
+        type: string
+        default: "1.6"
+    steps:
+      - run:
+          name: "jqコマンドがなければインストール"
+          command: |
+            type jq || \
+            (sudo curl -o /usr/local/bin/jq -L https://github.com/stedolan/jq/releases/download/jq-"<< parameters.version >>"/jq-linux64 && sudo chmod +x /usr/local/bin/jq)
+  update_pullrequested_issues:
+    description: "hubコマンドとGithub APIを利用してしてされたpull request中の全てのIssueをアップデート"
+    parameters:
+      github_token:
+        type: string
+        default: ${GITHUB_TOKEN}
+    steps:
+      - run:
+          name: "hubコマンドを利用して現在のブランチからリクエストしているプルリクエストの一覧を抽出"
+          command: |
+            hub pr list -h "`git symbolic-ref --short HEAD`" > /tmp/pullreq
+      - run:
+          name: "jqコマンドでアプデ予定のIssueの内容をjsonファイルにする"
+          command: |
+            jq -n \
+            --arg title "`head -1 .github/PULL_REQUEST_TEMPLATE.md`" \
+            --arg body "`cat .github/PULL_REQUEST_TEMPLATE.md`" \
+            '{title: $title, body: $body}' > /tmp/pullreq.update.json
+      - run:
+          name: "GithubのAPIを利用してIssueをアップデート"
+          command: |
+            cat /tmp/pullreq | while read v; do
+              issuenumber="`set $v && echo ${1} | sed -e 's/#//g'`"
+              curl -X PATCH https://api.github.com/repos/sunakan/${CIRCLE_PROJECT_REPONAME}/issues/$issuenumber \
+              -H "Authorization: token ${GITHUB_TOKEN}" \
+              -H "Content-Type:application/json" \
+              -d @/tmp/pullreq.update.json
+            done
+  add_puml_png_comment_for_comparing:
+    # ${$file//\//__}でhoge/fugaをhoge__fuga置換
+    # git diff --name-only..で変更のあった"ファイル名"だけ
+    # git ls-tree -r ..でそのブランチのファイル名全て
+    # grepでpumlファイルと完全一致
+    # 完全一致したものだけをshow
+    # &&で完全一致したときだけ以降の処理をする
+    # それを標準入力で受け取って圧縮文字列で出力
+    description: "もし*.pumlにdiffがあれば新しいコメントをプルリクに追加する"
+    steps:
+      - run:
+          name: "hubコマンドを利用して現在のブランチからリクエストしているプルリクエストの一覧を抽出"
+          command: |
+            hub pr list -h "`git symbolic-ref --short HEAD`" > /tmp/pullreq
+      - run:
+          name: "git diffの*.pumlだけ、ファイル名を取得し比較用mdテキストを/tmp以下に出力"
+          command: |
+            git diff -G ^"[^']+" --ignore-all-space --ignore-blank-lines --name-only origin/master -- "*.puml" \
+            | while read file; do
+              TMP_FILE=/tmp/${file//\//__}.md \
+                && echo "After($file)" > $TMP_FILE \
+                && git show `git rev-parse origin/master`:$file \
+                |  ruby puml_compressor.rb >> $TMP_FILE \
+                && echo "Before($file)" >> $TMP_FILE \
+                && git ls-tree -r `git rev-parse origin/master` --name-only \
+                |  grep --line-buffered -E ^"${file}"$ \
+                && git show `git rev-parse origin/master`:$file \
+                |  ruby puml_compressor.rb >> $TMP_FILE
+            done
+      - run:
+          name: "pumlの比較pngをpullreq分だけコメントを追加"
+          command: |
+            cat /tmp/pullreq | while read v; do
+              issuenumber="`set $v && echo ${1} | sed -e 's/#//g'`"
+              git diff -G ^"[^']+" --ignore-all-space --ignore-blank-lines --name-only origin/master -- "*.puml" \
+              | while read file; do
+                TMP_FILE=/tmp/${file//\//__}.md \
+                  && jq -n --arg body "`cat $TMP_FILE`" '{body: $body}' \
+                  | curl -X POST https://api.github.com/repos/sunakan/${CIRCLE_PROJECT_REPONAME}/issues/${issuenumber}/comments \
+                    -H "Authorization: token ${GITHUB_TOKEN}" \
+                    -H "Content-Type:application/json" \
+                    -d @-
+              done
+            done
+jobs:
+  upseart_pullrequest:
+    executor: ruby
+    steps:
+      - checkout
+      - install_hub:
+          version: "2.12.3"
+      - upseart_pullrequest:
+          from: $CIRCLE_BRANCH
+          to: "master"
+  update_pullrequested_issues:
+    executor: ruby
+    steps:
+      - checkout
+      - install_jq:
+          version: "1.6"
+      - install_hub:
+          version: "2.12.3"
+      - update_pullrequested_issues
+      - add_puml_png_comment_for_comparing
+
+workflows:
+  build:
+    jobs:
+      - upseart_pullrequest:
+          filters:
+            branches:
+              only:
+                - /feature\/.*/
+      - update_pullrequested_issues:
+          filters:
+            branches:
+              only: /feature\/.*/
+          requires:
+            - upseart_pullrequest
