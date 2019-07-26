@@ -103,3 +103,13 @@
 - [https://github.com/sunakan/puml-diffman/pull/3](https://github.com/sunakan/puml-diffman/pull/3)
 
 </details>
+
+<details>
+<summary>PlantUMLのアイコン集</summary>
+
+- plantuml.comが一覧を載せてくれてる(AWSやTomcatやMySQL等のアイコンもあったり)
+- [http://plantuml.com/ja/stdlib](http://plantuml.com/ja/stdlib)
+- 新し目のAWSアイコン
+- [https://github.com/awslabs/aws-icons-for-plantuml](https://github.com/awslabs/aws-icons-for-plantuml)
+
+</details>
