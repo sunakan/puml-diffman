@@ -1,0 +1,25 @@
+@startuml
+skinparam componentstyle UML2
+skinparam shadowing false
+
+== Slack ==
+
+Digdag -> Slack: 開始通知
+Digdag <- Slack:
+
+== extract database ==
+
+Digdag -> DB: abc
+Digdag <- DB: def
+
+== index ==
+
+Digdag -> Solr: index.sh
+Digdag <- Solr:
+
+== Slack ==
+
+Digdag -> Slack: 終了通知
+Digdag <- Slack:
+
+@enduml

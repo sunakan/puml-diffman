@@ -108,15 +108,16 @@ commands:
           command: |
             git diff -G ^"[^']+" --ignore-all-space --ignore-blank-lines --name-only origin/master -- "*.puml" \
             | while read file; do
-              TMP_FILE=/tmp/${file//\//__}.md \
-                && echo "After($file)" > $TMP_FILE \
-                && git show `git rev-parse origin/master`:$file \
-                |  ruby puml_compressor.rb >> $TMP_FILE \
-                && echo "Before($file)" >> $TMP_FILE \
-                && git ls-tree -r `git rev-parse origin/master` --name-only \
-                |  grep --line-buffered -E ^"${file}"$ \
-                && git show `git rev-parse origin/master`:$file \
-                |  ruby puml_compressor.rb >> $TMP_FILE
+              TMP_FILE=/tmp/${file//\//__}.md
+                echo "Before($file)" > $TMP_FILE
+                (git ls-tree -r `git rev-parse origin/master` --name-only \
+                  |  grep --line-buffered -E ^"${file}"$ \
+                  && git show `git rev-parse origin/master`:$file \
+                  |  ruby puml_compressor.rb >> $TMP_FILE \
+                ) || echo -e "Before($file)\n\nなし" > $TMP_FILE
+                echo "After($file)" >> $TMP_FILE
+                git show `git rev-parse HEAD`:$file \
+                  |  ruby puml_compressor.rb >> $TMP_FILE
             done
       - run:
           name: "pumlの比較pngをpullreq分だけコメントを追加"
